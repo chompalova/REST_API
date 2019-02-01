@@ -1,7 +1,5 @@
 package com.restserver;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 //bean class for handling JSON objects
 public class Dog {
     private String name;
