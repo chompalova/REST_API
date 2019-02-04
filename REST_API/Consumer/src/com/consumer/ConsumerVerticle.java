@@ -11,29 +11,31 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.mongo.MongoClient;
 
-public class ConsumerVerticleGET extends AbstractVerticle {
+public class ConsumerVerticle extends AbstractVerticle {
 
     private MongoClient mongo;
     private static final String COLLECTION_NAME = "dogs";
-    private static final Logger logger = LoggerFactory.getLogger(ConsumerVerticleGET.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConsumerVerticle.class);
 
     @Override
     public void start(Future future) {
-        logger.info("Starting ConsumerVerticleGET");
+        logger.info("Starting ConsumerVerticle");
         JsonObject config = new JsonObject().put("host", "127.0.0.1");
         mongo = MongoClient.createNonShared(vertx, config);
-
-        MessageConsumer<JsonObject> msgConsumer = vertx.eventBus().consumer(Constants.ADDRESS);
+        //create a handler for POST requests
+        MessageConsumer<JsonObject> msgConsumer = vertx.eventBus().consumer(Constants.POST_ADDRESS);
         msgConsumer.handler(json -> {
-            if (json.body() != null) { //POST
-                System.out.println("Consumer: a message received: " + json.body());
-                insertIntoCollection(json.body());
-                json.reply("ACK from Consumer.");
-            } else { //GET*/
-                getAll();
-                json.reply("ACK from Consumer.");
-            }
+            System.out.println("Consumer: a message received: " + json.body());
+            insertIntoCollection(json.body());
+            json.reply("ACK from Consumer.");
         });
+
+        vertx.eventBus().consumer(Constants.GET_ADDRESS, msg -> {
+            getAll();
+            logger.info("Consumer: a GET request received.");
+            msg.reply("ACK from Consumer.");
+        });
+
         future.complete();
     }
 
@@ -63,11 +65,11 @@ public class ConsumerVerticleGET extends AbstractVerticle {
         mongo.find(COLLECTION_NAME, new JsonObject(), res -> {
             if (res.succeeded()) {
                 JsonArray array = new JsonArray(res.result());
-                vertx.eventBus().send(Constants.ADDRESS, array, reply -> {
+                vertx.eventBus().send(Constants.GET_ADDRESS, array, reply -> {
                     if (reply.succeeded()) {
-                        System.out.println("ConsumerVerticleGET mongo: received a reply: " + reply.result().body());
+                        System.out.println("ConsumerVerticle mongo: received a reply: " + reply.result().body());
                     } else {
-                        System.out.println("ConsumerVerticleGET: failed to receive a reply.");
+                        System.out.println("ConsumerVerticle: failed to receive a reply.");
                         reply.cause().printStackTrace();
                     }
                 });

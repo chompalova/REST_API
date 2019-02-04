@@ -55,7 +55,7 @@ public class HttpServerVerticle extends AbstractVerticle {
             System.out.println(json);
             if (!json.isEmpty() || json != null) {
                 //send the json object over the event bus
-                vertx.eventBus().send("CONSUMER", json, res -> {
+                vertx.eventBus().send(Constants.POST_ADDRESS, json, res -> {
                     if (res.succeeded()) {
                         System.out.println("HttpServerVerticle: received a reply: " + res.result().body());
                     } else {
@@ -80,12 +80,13 @@ public class HttpServerVerticle extends AbstractVerticle {
     }
 
     private void getAll(RoutingContext context) {
-        vertx.eventBus().send(Constants.ADDRESS, null, res -> {
+        EventBus eventBus = vertx.eventBus();
+        eventBus.send(Constants.GET_ADDRESS, null, res -> {
             if (res.succeeded()) {
-                MessageConsumer<List<JsonObject>> msgConsumer = vertx.eventBus().consumer(Constants.ADDRESS);
+                MessageConsumer<List<JsonObject>> msgConsumer = eventBus.consumer(Constants.GET_ADDRESS);
                 msgConsumer.handler(jsonList -> {
-                    context.response().setStatusCode(200).putHeader("content-type", "application/json; charset=utf-8").end(Json.encodePrettily(jsonList.body()));
                     logger.info("HttpServerVerticle: received a reply: " + jsonList.body());
+                    context.response().setStatusCode(200).putHeader("content-type", "application/json; charset=utf-8").end(Json.encodePrettily(jsonList.body()));
                     jsonList.reply("GET Request/ACK from server");
                 });
             } else {

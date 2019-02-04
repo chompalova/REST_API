@@ -1,6 +1,6 @@
 package com.restserver;
 
-import com.consumer.ConsumerVerticleGET;
+import com.consumer.ConsumerVerticle;
 
 import io.vertx.core.AbstractVerticle;
 
@@ -9,9 +9,9 @@ public class VerticleContainer extends AbstractVerticle{ //verticle container
 
     @Override
     public void start() {
-        vertx.deployVerticle(new ConsumerVerticleGET(), res -> {
+        vertx.deployVerticle(new ConsumerVerticle(), res -> {
             if (res.succeeded()) {
-                System.out.println("Successfully deployed ConsumerVerticleGET");
+                System.out.println("Successfully deployed ConsumerVerticle");
                 vertx.deployVerticle(new HttpServerVerticle(), r -> {
                     if (res.succeeded()) {
                         System.out.println("Successfully deployed HttpServerVerticle");
@@ -20,7 +20,7 @@ public class VerticleContainer extends AbstractVerticle{ //verticle container
                     }
                 });
             } else {
-                System.out.println("Failed to deploy ConsumerVerticleGET.");
+                System.out.println("Failed to deploy ConsumerVerticle.");
                 res.cause().printStackTrace();
             }
         });
