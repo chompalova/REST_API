@@ -1,11 +1,9 @@
 package com.restserver;
 
-import com.utils.Constants;
-
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.utils.Constants;
 
 import java.util.List;
 
@@ -21,80 +19,64 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.redis.RedisClient;
 
 public class HttpServerVerticle extends AbstractVerticle {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     public static final int PORT = 8080;
-    //EventBus eventBus = vertx.eventBus();
 
     @Override
     public void start(Future future) throws Exception {
         Router router = Router.router(vertx);
 
         router.get("/api/dogs").handler(this::getAll);
+        router.route("/api/dogs*").handler(BodyHandler.create());
         router.post("/api/dogs").handler(this::addItem);
 
         HttpServer server = vertx.createHttpServer();
         server.requestHandler(router::accept).listen(PORT, res -> {
             if (res.succeeded()) {
-                System.out.println("Server listening on port: " + PORT);
-                logger.info("Server listening on port: \" + PORT");
+                logger.info("Server listening on port: " + PORT);
                 future.complete();
             } else {
-                System.out.println("Failed to start server.");
+                logger.info("Failed to start server.");
                 future.fail(res.cause());
             }
         });
     }
 
     private void addItem(RoutingContext context) {
-        context.request().bodyHandler(buffer -> {
-            JsonObject json = buffer.toJsonObject();
-            System.out.println(json);
-            if (!json.isEmpty() || json != null) {
-                //send the json object over the event bus
-                vertx.eventBus().send(Constants.POST_ADDRESS, json, res -> {
-                    if (res.succeeded()) {
-                        System.out.println("HttpServerVerticle: received a reply: " + res.result().body());
-                    } else {
-                        System.out.println("HttpServerVerticle: failed to receive a reply.");
-                    }
-                });
-                context.response().setStatusCode(200).putHeader("content-type", "application/json; charset=utf-8").end(Json.encodePrettily(json));
+        final Dog dog = Json.decodeValue(context.getBodyAsString(), Dog.class);
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+
+        String dogToJson = null;
+        try {
+            dogToJson = ow.writeValueAsString(dog);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        vertx.eventBus().send(Constants.POST_ADDRESS, new JsonObject(dogToJson), res -> {
+            if (res.succeeded()) {
+                logger.info("HttpServerVerticle: received a reply: " + res.result().body());
             } else {
-                context.response().setStatusCode(400).end("Error: JSON object cannot be empty or null.");
+                logger.info("HttpServerVerticle: failed to receive a reply.");
             }
         });
-        /*if (body.length() != 0) {
-            Dog dog = Json.decodeValue(body, Dog.class);
-            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-            String dogToJson = null;
-            try {
-                dogToJson = ow.writeValueAsString(dog);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }*/
-        //sending the json object over the event bus
+        context.response().setStatusCode(200).putHeader("content-type", "application/json; charset=utf-8").end(Json.encodePrettily(dog));
     }
 
     private void getAll(RoutingContext context) {
         EventBus eventBus = vertx.eventBus();
+        MessageConsumer<List<JsonObject>> msgConsumer = eventBus.consumer(Constants.GET_ADDRESS);
         eventBus.send(Constants.GET_ADDRESS, null, res -> {
             if (res.succeeded()) {
-                MessageConsumer<List<JsonObject>> msgConsumer = eventBus.consumer(Constants.GET_ADDRESS);
-                msgConsumer.handler(jsonList -> {
-                    logger.info("HttpServerVerticle: received a reply: " + jsonList.body());
-                    context.response().setStatusCode(200).putHeader("content-type", "application/json; charset=utf-8").end(Json.encodePrettily(jsonList.body()));
-                    jsonList.reply("GET Request/ACK from server");
-                });
+                logger.info("HttpServerVerticle: received a reply: " + res.result().body());
+                context.response().setStatusCode(200).putHeader("content-type", "application/json; charset=utf-8").end(Json.encodePrettily(res.result().body()));
             } else {
                 logger.info("HttpServerVerticle: failed to receive a reply.");
                 context.response().setStatusCode(204);
             }
         });
     }
-
-
-        }
+}

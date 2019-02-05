@@ -3,24 +3,28 @@ package com.restserver;
 import com.consumer.ConsumerVerticle;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 
 public class VerticleContainer extends AbstractVerticle{ //verticle container
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
     public void start() {
         vertx.deployVerticle(new ConsumerVerticle(), res -> {
             if (res.succeeded()) {
-                System.out.println("Successfully deployed ConsumerVerticle");
+                logger.info("Successfully deployed ConsumerVerticle");
                 vertx.deployVerticle(new HttpServerVerticle(), r -> {
                     if (res.succeeded()) {
-                        System.out.println("Successfully deployed HttpServerVerticle");
+                        logger.info("Successfully deployed HttpServerVerticle");
                     } else {
-                        System.out.println("Failed to deploy HttpServerVerticle");
+                        logger.info("Failed to deploy HttpServerVerticle");
                     }
                 });
             } else {
-                System.out.println("Failed to deploy ConsumerVerticle.");
+                logger.info("Failed to deploy ConsumerVerticle.");
                 res.cause().printStackTrace();
             }
         });
