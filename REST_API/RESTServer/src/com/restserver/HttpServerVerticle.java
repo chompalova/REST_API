@@ -24,6 +24,7 @@ public class HttpServerVerticle extends AbstractVerticle {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     public static final int PORT = 8080;
+    public static final String HOST = "0.0.0.0";
 
     @Override
     public void start(Future future) throws Exception {
@@ -34,9 +35,9 @@ public class HttpServerVerticle extends AbstractVerticle {
         router.post("/api/dogs").handler(this::addItem);
 
         HttpServer server = vertx.createHttpServer();
-        server.requestHandler(router::accept).listen(PORT, res -> {
+        server.requestHandler(router::accept).listen(PORT, "0.0.0.0", res -> {
             if (res.succeeded()) {
-                logger.info("Server listening on port: " + PORT);
+                logger.info("Server listening on:" + HOST + ":" + PORT);
                 future.complete();
             } else {
                 logger.info("Failed to start server.");
@@ -68,7 +69,6 @@ public class HttpServerVerticle extends AbstractVerticle {
 
     private void getAll(RoutingContext context) {
         EventBus eventBus = vertx.eventBus();
-        MessageConsumer<List<JsonObject>> msgConsumer = eventBus.consumer(Constants.GET_ADDRESS);
         eventBus.send(Constants.GET_ADDRESS, null, res -> {
             if (res.succeeded()) {
                 logger.info("HttpServerVerticle: received a reply: " + res.result().body());
