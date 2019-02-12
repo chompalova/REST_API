@@ -29,7 +29,7 @@ To install and run REST_API, follow these steps:
 
 2. Next, create a folder and put docker-compose.yml, Dockerfile and REST_API.jar in it.
 
-Links: 
+Links: <br/>
 https://github.com/chompalova/REST_API/blob/master/REST_API/docker-compose.yml
 https://github.com/chompalova/REST_API/blob/master/REST_API/Dockerfile
 https://github.com/chompalova/REST_API/blob/master/REST_API/REST_API.jar
