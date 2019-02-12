@@ -68,7 +68,7 @@ to list your containers.
 
 POST request:
 
-$ curl -X POST http://localhost:8080/api/dogs -d "@./payload.json"<br/>
+curl -X POST http://localhost:8080/api/dogs -d "@./payload.json"<br/>
 {<br/>
   "name" : "Ketty",<br/>
   "breed" : "Beagle",<br/>
@@ -77,6 +77,6 @@ $ curl -X POST http://localhost:8080/api/dogs -d "@./payload.json"<br/>
 
 GET request:
 
-$curl http://localhost:8080/api/dogs/
+curl http://localhost:8080/api/dogs/
 
 You should get a JSON array of results.
