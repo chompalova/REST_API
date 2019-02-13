@@ -34,37 +34,35 @@ https://github.com/chompalova/REST_API/blob/master/REST_API/docker-compose.yml
 https://github.com/chompalova/REST_API/blob/master/REST_API/Dockerfile
 https://github.com/chompalova/REST_API/blob/master/REST_API/REST_API.jar
 
-3. Open a console and navigate to the folder you created in the previous step. 
-
-4. To start MongoDB, type 
+3. To start MongoDB, type 
 
 ```
-docker-compose up --build
+docker run --rm -p 27017:27017 --name falcon_mongodb mongo:latest
 ``` 
-5. Open another console and navigate to the folder you created in step 2.
+4. Open another console and navigate to the folder you created in step 2.
 
-6. Type
+5. Type
 
 ```
 docker build -t falcon-vertx . 
 ```
 and then 
 ```
-docker run -it -p 8080:8080 --network host falcon-vertx
+docker run  -p 8080:8080 --link falcon_mongodb  falcon-vertx
 ```
 
 to run the Vert.x container.
 
-7. Type 
+6. Type 
 
 ```
 docker ps
 ```
 to list your containers.
 
-8. Install curl from https://curl.haxx.se/. If you are on Windows, put the link to the .exe in the PATH environment variable.
+7. Install curl from https://curl.haxx.se/. If you are on Windows, put the link to the .exe in the PATH environment variable.
 
-9. To test the REST endpoint:
+8. To test the REST endpoint:
 
 POST request:
 
@@ -79,4 +77,4 @@ GET request:
 
 curl http://localhost:8080/api/dogs/
 
-You should get a JSON array of results.
+You can also use an HTTP client such as Postman.
