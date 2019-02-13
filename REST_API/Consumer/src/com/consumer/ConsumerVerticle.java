@@ -20,7 +20,7 @@ public class ConsumerVerticle extends AbstractVerticle {
     @Override
     public void start(Future future) {
         logger.info("Starting ConsumerVerticle");
-        JsonObject config = new JsonObject().put("falcon_mongodb", "127.0.0.1");
+        JsonObject config = new JsonObject().put("host", "falcon_mongodb");
         mongo = MongoClient.createNonShared(vertx, config);
         //create a handler for POST requests
         MessageConsumer<JsonObject> msgConsumer = vertx.eventBus().consumer(Constants.POST_ADDRESS);
